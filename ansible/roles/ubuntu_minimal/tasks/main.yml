@@ -36,12 +36,15 @@
     validate: "sshd -t -f %s"
   notify: Restart sshd
 
-- name: Install UFW, fail2ban, and unattended-upgrades
+- name: Install UFW, fail2ban, unattended-upgrades, and baseline tools
   ansible.builtin.apt:
     name:
       - ufw
       - fail2ban
       - unattended-upgrades
+      - curl
+      - git
+      - htop
     state: present
 
 - name: Allow SSH port through UFW
