@@ -13,7 +13,7 @@ apt-get update && apt-get upgrade -y
 apt-get autoremove -y
 
 echo "--> Installing utilities (fail2ban, monitoring, tools)..."
-apt-get install -y fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro
+apt-get install -y ufw fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro
 
 # 1. Automate security & maintenance updates
 dpkg-reconfigure -f noninteractive unattended-upgrades
@@ -77,7 +77,16 @@ EOF
 sshd -t
 systemctl restart ssh
 
-# 4. Fail2ban tuning
+# 4. Minimal UFW firewall (SSH only). X11 forwarding and any ssh -L/-D
+# port forwarding tunnel through the SSH connection itself, so a
+# deny-by-default firewall that only allows SSH does not affect them --
+# nothing extra to open for those to keep working.
+ufw allow OpenSSH
+ufw default deny incoming
+ufw default allow outgoing
+ufw --force enable
+
+# 5. Fail2ban tuning
 cat << 'EOF' > /etc/fail2ban/jail.local
 [DEFAULT]
 bantime = 1h
@@ -92,7 +101,7 @@ logpath = %(sshd_log)s
 EOF
 systemctl restart fail2ban
 
-# 5. Limit journald logs (prevents disk fill-up)
+# 6. Limit journald logs (prevents disk fill-up)
 mkdir -p /etc/systemd/journald.conf.d/
 cat << 'EOF' > /etc/systemd/journald.conf.d/00-journal-size.conf
 [Journal]
