@@ -13,7 +13,7 @@ apt-get update && apt-get upgrade -y
 apt-get autoremove -y
 
 echo "--> Installing utilities (fail2ban, monitoring, tools)..."
-apt-get install -y ufw fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro cron mailutils curl wget libpam-tmpdir
+apt-get install -y ufw fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro cron mailutils curl wget
 
 # 1. Automate security & maintenance updates
 dpkg-reconfigure -f noninteractive unattended-upgrades
