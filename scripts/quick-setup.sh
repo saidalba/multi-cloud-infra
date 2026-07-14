@@ -10,6 +10,7 @@ if [ "$EUID" -ne 0 ]; then echo "Error: Must run as root"; exit 1; fi
 
 echo "--> Updating system..."
 apt-get update && apt-get upgrade -y
+apt-get autoremove -y
 
 echo "--> Installing utilities (fail2ban, monitoring, tools)..."
 apt-get install -y fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro
@@ -58,27 +59,47 @@ EOF
 # run this script right now -- and this script does not create a fallback
 # sudo user. If you want root SSH disabled completely, create and test a
 # separate sudo user with your key authorized first, then change this to "no".
+# X11Forwarding is intentionally left unset (Ubuntu's default is "yes") and
+# the Kex/Cipher/MAC list below only restricts transport-layer crypto to
+# modern algorithms -- it does not affect which key types can authenticate,
+# so existing SSH private keys keep working unchanged.
 cat << 'EOF' > /etc/ssh/sshd_config.d/99-hardening.conf
 PasswordAuthentication no
 PermitRootLogin prohibit-password
+PermitEmptyPasswords no
 MaxAuthTries 3
-X11Forwarding no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp521
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
 EOF
 sshd -t
 systemctl restart ssh
 
 # 4. Fail2ban tuning
 cat << 'EOF' > /etc/fail2ban/jail.local
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 ::1
+
 [sshd]
 enabled = true
-bantime = 1h
-maxretry = 5
+port = ssh
+logpath = %(sshd_log)s
 EOF
 systemctl restart fail2ban
 
 # 5. Limit journald logs (prevents disk fill-up)
 mkdir -p /etc/systemd/journald.conf.d/
-printf '[Journal]\nSystemMaxUse=1G\n' > /etc/systemd/journald.conf.d/00-journal-size.conf
+cat << 'EOF' > /etc/systemd/journald.conf.d/00-journal-size.conf
+[Journal]
+SystemMaxUse=1G
+RuntimeMaxUse=200M
+MaxRetentionSec=30day
+EOF
 systemctl restart systemd-journald
 
 echo "--> Setup complete. Keep this terminal open and test SSH in a NEW terminal before closing it."

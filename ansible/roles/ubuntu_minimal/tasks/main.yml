@@ -4,6 +4,7 @@
     update_cache: true
     upgrade: full
     cache_valid_time: 3600
+    autoremove: true
 
 - name: Create non-root sudo user
   ansible.builtin.user:
@@ -92,6 +93,23 @@
       APT::Periodic::Unattended-Upgrade "1";
     mode: "0644"
   when: unattended_upgrades_enabled
+
+- name: Ensure journald drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Limit journald log size and retention
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/00-journal-size.conf
+    content: |
+      [Journal]
+      SystemMaxUse={{ journald_max_use }}
+      RuntimeMaxUse={{ journald_runtime_max_use }}
+      MaxRetentionSec={{ journald_max_retention }}
+    mode: "0644"
+  notify: Restart systemd-journald
 
 - name: Check for existing swap file
   ansible.builtin.stat:

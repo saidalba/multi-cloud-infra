@@ -3,8 +3,14 @@ admin_user: deploy
 admin_ssh_public_key_path: "~/.ssh/id_ed25519.pub"
 
 ssh_port: 22
+ssh_client_alive_interval: 300
+ssh_client_alive_count_max: 2
 
 swap_size_mb: 1024
+
+journald_max_use: 1G
+journald_runtime_max_use: 200M
+journald_max_retention: 30day
 
 timezone: "UTC"
 locale: "en_US.UTF-8"
