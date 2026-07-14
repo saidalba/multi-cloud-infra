@@ -47,6 +47,11 @@
       - wget
       - git
       - htop
+      - ncdu
+      - iotop
+      - nethogs
+      - tmux
+      - micro
     state: present
 
 - name: Allow SSH port through UFW
