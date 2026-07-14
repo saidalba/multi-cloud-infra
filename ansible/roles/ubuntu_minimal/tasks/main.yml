@@ -1,0 +1,137 @@
+---
+- name: Update apt cache and upgrade all packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+    cache_valid_time: 3600
+
+- name: Create non-root sudo user
+  ansible.builtin.user:
+    name: "{{ admin_user }}"
+    groups: sudo
+    shell: /bin/bash
+    append: true
+    create_home: true
+
+- name: Allow passwordless sudo for admin user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ admin_user }}"
+    content: "{{ admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: "visudo -cf %s"
+
+- name: Authorize SSH public key for admin user
+  ansible.posix.authorized_key:
+    user: "{{ admin_user }}"
+    key: "{{ lookup('file', admin_ssh_public_key_path) }}"
+    state: present
+
+- name: Harden SSH daemon configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "sshd -t -f %s"
+  notify: Restart sshd
+
+- name: Install UFW, fail2ban, and unattended-upgrades
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+      - unattended-upgrades
+    state: present
+
+- name: Allow SSH port through UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+
+- name: Set UFW default incoming policy to deny
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set UFW default outgoing policy to allow
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+- name: Enable and start fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started
+  when: fail2ban_enabled
+
+- name: Enable unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+  when: unattended_upgrades_enabled
+
+- name: Check for existing swap file
+  ansible.builtin.stat:
+    path: /swapfile
+  register: ubuntu_minimal_swapfile_stat
+
+- name: Create swap file
+  ansible.builtin.command: fallocate -l {{ swap_size_mb }}M /swapfile
+  when:
+    - not ubuntu_minimal_swapfile_stat.stat.exists
+    - swap_size_mb | int > 0
+  changed_when: true
+
+- name: Set swap file permissions
+  ansible.builtin.file:
+    path: /swapfile
+    mode: "0600"
+  when:
+    - not ubuntu_minimal_swapfile_stat.stat.exists
+    - swap_size_mb | int > 0
+
+- name: Format swap file
+  ansible.builtin.command: mkswap /swapfile
+  when:
+    - not ubuntu_minimal_swapfile_stat.stat.exists
+    - swap_size_mb | int > 0
+  changed_when: true
+
+- name: Enable swap file
+  ansible.builtin.command: swapon /swapfile
+  when:
+    - not ubuntu_minimal_swapfile_stat.stat.exists
+    - swap_size_mb | int > 0
+  changed_when: true
+
+- name: Persist swap file in fstab
+  ansible.posix.mount:
+    path: none
+    src: /swapfile
+    fstype: swap
+    opts: sw
+    state: present
+  when: swap_size_mb | int > 0
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Ensure locale is generated
+  community.general.locale_gen:
+    name: "{{ locale }}"
+    state: present
+
+- name: Set default locale
+  ansible.builtin.command: "update-locale LANG={{ locale }}"
+  changed_when: false

@@ -1,0 +1,6 @@
+---
+- name: Bootstrap minimal Ubuntu ARM64 instance
+  hosts: all
+  become: true
+  roles:
+    - ubuntu_minimal

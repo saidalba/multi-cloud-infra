@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and fill in your values.
+# Auth itself is NOT set here -- it comes from ARM_* env vars or `az login`.
+
+instance_name       = "azure-ubuntu-arm"
+region              = "eastus"
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+
+# Ampere Altra (ARM64) VM size. Availability varies by region -- verify with:
+# az vm list-sizes --location eastus --query "[?contains(name,'Dps')]"
+instance_shape = "Standard_D2ps_v5"
+
+tags = {
+  environment = "dev"
+  managed_by  = "terraform"
+}

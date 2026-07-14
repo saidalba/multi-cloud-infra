@@ -1,0 +1,13 @@
+---
+admin_user: deploy
+admin_ssh_public_key_path: "~/.ssh/id_ed25519.pub"
+
+ssh_port: 22
+
+swap_size_mb: 1024
+
+timezone: "UTC"
+locale: "en_US.UTF-8"
+
+unattended_upgrades_enabled: true
+fail2ban_enabled: true

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  terraform:
+    name: terraform (${{ matrix.provider }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [oci, aws, azure]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.5"
+
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive terraform/
+
+      - name: terraform init (no backend, no credentials)
+        run: terraform -chdir=terraform/live/${{ matrix.provider }} init -backend=false
+
+      - name: terraform validate
+        run: terraform -chdir=terraform/live/${{ matrix.provider }} validate
+
+  ansible:
+    name: ansible lint + syntax-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible tooling
+        run: pip install ansible ansible-lint
+
+      - name: Install required collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: ansible-lint
+        run: ansible-lint ansible/playbook.yml
+
+      - name: ansible-playbook --syntax-check
+        run: |
+          echo "[all]
+          203.0.113.10 ansible_user=ubuntu" > /tmp/dummy-inventory.ini
+          ansible-playbook -i /tmp/dummy-inventory.ini ansible/playbook.yml --syntax-check

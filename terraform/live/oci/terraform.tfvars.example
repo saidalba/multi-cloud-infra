@@ -1,0 +1,18 @@
+# Copy to terraform.tfvars and fill in your values.
+# Auth itself is NOT set here -- it comes from ~/.oci/config (DEFAULT profile).
+# See: https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm
+
+compartment_id      = "ocid1.compartment.oc1..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+instance_name       = "oci-ubuntu-arm"
+region              = "us-ashburn-1"
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+
+# Free-tier eligible Ampere A1 shape.
+instance_shape  = "VM.Standard.A1.Flex"
+shape_ocpus     = 1
+shape_memory_gb = 6
+
+tags = {
+  environment = "dev"
+  managed_by  = "terraform"
+}
