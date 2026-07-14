@@ -44,6 +44,7 @@
       - fail2ban
       - unattended-upgrades
       - curl
+      - wget
       - git
       - htop
     state: present
