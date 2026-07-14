@@ -13,7 +13,7 @@ apt-get update && apt-get upgrade -y
 apt-get autoremove -y
 
 echo "--> Installing utilities (fail2ban, monitoring, tools)..."
-apt-get install -y ufw fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro
+apt-get install -y ufw fail2ban unattended-upgrades htop ncdu iotop nethogs tmux git micro cron mailutils
 
 # 1. Automate security & maintenance updates
 dpkg-reconfigure -f noninteractive unattended-upgrades
@@ -110,5 +110,24 @@ RuntimeMaxUse=200M
 MaxRetentionSec=30day
 EOF
 systemctl restart systemd-journald
+
+# 7. Prometheus node_exporter (optional monitoring). Stays unreachable from
+# the internet by default -- UFW only allows SSH, same as everything else.
+# Open 9100 yourself, restricted to your monitoring server's IP, to scrape it.
+apt-get install -y prometheus-node-exporter
+systemctl enable --now prometheus-node-exporter
+
+# 8. Basic disk/memory health-check, mailed to ALERT_EMAIL (defaults to the
+# local root mailbox, readable on-box via `mail`). For alerts to leave the
+# server you need a real mail transport (e.g. msmtp) configured separately --
+# this only wires up the local script + schedule.
+cat << EOF > /usr/local/bin/health-check.sh
+#!/bin/bash
+df -h | awk 'NR>1 && \$5+0 > 80 {print "DISK ALERT: " \$0}' | mail -s "Disk Alert: \$(hostname)" "${ALERT_EMAIL:-root}"
+FREE=\$(free | awk '/Mem/{printf "%.0f", \$4/\$2*100}')
+[ "\$FREE" -lt 10 ] && echo "Low memory: \${FREE}% free" | mail -s "Memory Alert: \$(hostname)" "${ALERT_EMAIL:-root}"
+EOF
+chmod +x /usr/local/bin/health-check.sh
+echo "*/15 * * * * root /usr/local/bin/health-check.sh" > /etc/cron.d/health-check
 
 echo "--> Setup complete. Keep this terminal open and test SSH in a NEW terminal before closing it."

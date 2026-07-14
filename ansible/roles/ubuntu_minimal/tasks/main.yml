@@ -166,3 +166,45 @@
 - name: Set default locale
   ansible.builtin.command: "update-locale LANG={{ locale }}"
   changed_when: false
+
+# node_exporter listens on 9100 but stays unreachable from the internet by
+# default -- the earlier "UFW default incoming policy: deny" task blocks it
+# same as everything else. Open 9100 yourself, restricted to your monitoring
+# server's IP, if you want to scrape it remotely.
+- name: Install Prometheus node_exporter
+  ansible.builtin.apt:
+    name: prometheus-node-exporter
+    state: present
+  when: node_exporter_enabled
+
+- name: Enable and start node_exporter
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+  when: node_exporter_enabled
+
+- name: Install cron and mail utilities for health-check alerts
+  ansible.builtin.apt:
+    name:
+      - cron
+      - mailutils
+    state: present
+  when: health_check_enabled
+
+- name: Install disk/memory health-check script
+  ansible.builtin.template:
+    src: health-check.sh.j2
+    dest: /usr/local/bin/health-check.sh
+    owner: root
+    group: root
+    mode: "0755"
+  when: health_check_enabled
+
+- name: Schedule health-check via cron
+  ansible.builtin.cron:
+    name: "disk/memory health check"
+    minute: "*/15"
+    user: root
+    job: /usr/local/bin/health-check.sh
+  when: health_check_enabled and health_check_alert_email | length > 0

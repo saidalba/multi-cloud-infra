@@ -20,3 +20,14 @@ fail2ban_enabled: true
 fail2ban_bantime: 1h
 fail2ban_findtime: 10m
 fail2ban_maxretry: 5
+
+node_exporter_enabled: true
+
+# health_check_enabled installs the disk/memory check script regardless.
+# The cron schedule is only added once health_check_alert_email is set --
+# alerts also require a mail transport (e.g. msmtp) configured on the box
+# to actually be delivered anywhere; this only wires up the local piece.
+health_check_enabled: true
+health_check_alert_email: ""
+health_check_disk_threshold: 80
+health_check_mem_free_threshold: 10

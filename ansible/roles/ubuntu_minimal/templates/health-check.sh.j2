@@ -1,0 +1,6 @@
+#!/bin/bash
+# Managed by Ansible - ubuntu_minimal role.
+df -h | awk 'NR>1 && $5+0 > {{ health_check_disk_threshold }} {print "DISK ALERT: " $0}' | mail -s "Disk Alert: $(hostname)" {{ health_check_alert_email }}
+
+FREE=$(free | awk '/Mem/{printf "%.0f", $4/$2*100}')
+[ "$FREE" -lt {{ health_check_mem_free_threshold }} ] && echo "Low memory: ${FREE}% free" | mail -s "Memory Alert: $(hostname)" {{ health_check_alert_email }}
