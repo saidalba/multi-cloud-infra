@@ -28,6 +28,23 @@ The `Makefile` runs both for you in the right order, so in practice you only eve
 
 Pick whichever one you already have an account with. Oracle Cloud has been tested end-to-end; AWS and Azure follow the identical setup process.
 
+<details>
+<summary>Full free-tier comparison (click to expand)</summary>
+
+| Feature | Oracle Cloud (OCI) | AWS (Graviton) | Microsoft Azure |
+|---|---|---|---|
+| Instance Type | Ampere A1 Compute | `t4g.small` | `Standard_B2pts_v2` |
+| CPU Architecture | Ampere Altra | AWS Graviton2 | Ampere Altra |
+| Compute Allowance | 2 OCPUs | 2 vCPUs | 2 vCPUs |
+| Memory (RAM) | 12 GB | 2 GB | 1 GB |
+| Uptime per Month | 1,500 hours (runs 2 VMs) | 750 hours (runs 1 VM) | 750 hours (runs 1 VM) |
+| Free Storage | 200 GB Block Volume | 30 GB EBS (gp2/gp3) | 64 GB Managed Disk |
+| Outbound Data | 10 TB / month | 100 GB / month | 100 GB / month |
+| Duration | Always Free | Trial ends Dec 31, 2026 | 12 months only |
+| Who Qualifies? | New & existing accounts | New & existing accounts | New accounts only |
+
+</details>
+
 ---
 
 ## ✅ Prerequisites
