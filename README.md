@@ -85,7 +85,9 @@ No cloud credentials are ever stored in this repo. Each provider reads them from
 
 ```text
 ├── Makefile                    # make up / make down / make lint — the commands you'll actually use
-├── scripts/generate-inventory.sh
+├── scripts/
+│   ├── generate-inventory.sh   # terraform output -> ansible inventory (used by `make up`)
+│   └── quick-setup.sh          # optional: manual paste-and-run hardening, see below
 ├── terraform/
 │   ├── modules/                # Reusable building blocks, one per provider
 │   │   ├── oci-instance/
@@ -111,6 +113,24 @@ make down PROVIDER=oci      # destroy it
 make plan PROVIDER=aws      # preview changes before applying
 make lint                   # check everything is valid (useful before committing changes)
 ```
+
+---
+
+## 🩹 Quick manual setup (optional)
+
+The Terraform + Ansible flow above is the recommended path — it's reproducible and works the same way across all three providers. But sometimes you just want a box hardened *right now*: a server you spun up by hand in a cloud console, a one-off test instance, or a moment where you're on your phone/a borrowed machine SSH'd into a fresh box with no Terraform or Ansible installed locally. That's what `scripts/quick-setup.sh` is for.
+
+It's a single, self-contained bash script covering the same essentials as the `ubuntu_minimal` Ansible role (SSH hardening, fail2ban, unattended security upgrades, log-size limits) but with nothing to install locally — copy-paste it into an SSH session and run it.
+
+```bash
+# On the server, as root:
+curl -O https://raw.githubusercontent.com/saidalba/multi-cloud-infra/main/scripts/quick-setup.sh
+# or just paste the file contents into a new file with nano/vim/micro
+chmod +x quick-setup.sh
+./quick-setup.sh
+```
+
+**Read it before you run it.** It disables SSH password login and restarts sshd. It intentionally uses `PermitRootLogin prohibit-password` rather than `no` — the stricter setting would also block the root SSH key you're using to run the script, and this script doesn't create a fallback sudo user like the Ansible role does. If you want root SSH disabled entirely, create and test a separate sudo user with your key authorized first.
 
 ---
 
