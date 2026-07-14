@@ -59,8 +59,7 @@ EOF
 # run this script right now -- and this script does not create a fallback
 # sudo user. If you want root SSH disabled completely, create and test a
 # separate sudo user with your key authorized first, then change this to "no".
-# X11Forwarding is intentionally left unset (Ubuntu's default is "yes") and
-# the Kex/Cipher/MAC list below only restricts transport-layer crypto to
+# The Kex/Cipher/MAC list below only restricts transport-layer crypto to
 # modern algorithms -- it does not affect which key types can authenticate,
 # so existing SSH private keys keep working unchanged.
 cat << 'EOF' > /etc/ssh/sshd_config.d/99-hardening.conf
@@ -70,6 +69,7 @@ PermitEmptyPasswords no
 MaxAuthTries 3
 ClientAliveInterval 300
 ClientAliveCountMax 2
+X11Forwarding no
 KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp521
 Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
@@ -77,10 +77,9 @@ EOF
 sshd -t
 systemctl restart ssh
 
-# 4. Minimal UFW firewall (SSH only). X11 forwarding and any ssh -L/-D
-# port forwarding tunnel through the SSH connection itself, so a
-# deny-by-default firewall that only allows SSH does not affect them --
-# nothing extra to open for those to keep working.
+# 4. Minimal UFW firewall (SSH only). Any ssh -L/-D port forwarding tunnels
+# through the SSH connection itself, so a deny-by-default firewall that only
+# allows SSH does not affect it -- nothing extra to open to keep that working.
 ufw allow OpenSSH
 ufw default deny incoming
 ufw default allow outgoing

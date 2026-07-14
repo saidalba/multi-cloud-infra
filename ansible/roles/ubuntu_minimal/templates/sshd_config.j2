@@ -8,8 +8,7 @@ MaxAuthTries 3
 ClientAliveInterval {{ ssh_client_alive_interval }}
 ClientAliveCountMax {{ ssh_client_alive_count_max }}
 
-# X11Forwarding is intentionally left unset here -- Ubuntu's stock
-# sshd_config already sets it to "yes", and this role doesn't override that.
+X11Forwarding no
 
 # Modern, broadly-compatible algorithms only. Any OpenSSH client from the
 # last several years (macOS/Linux defaults included) supports these; this
