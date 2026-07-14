@@ -1,6 +1,6 @@
 # multi-cloud-infra
 
-Spin up a secure, ready-to-use Ubuntu ARM64 server on **Oracle Cloud, AWS, or Azure** with a single command — no cloud console clicking, no manual server setup.
+From time to time Oracle Cloud, AWS and/or Azure udpates their free tier resources but generally aarch64(ARM) processors are avaible with higher memory allocations. So this repo here for free riders who wants spin up quick instances for testing, learning Kubernetes or building microservices and doing this in a reproducible way.
 
 You don't need to be a cloud expert to use this. Follow the steps below in order and you'll have a working server in a few minutes.
 
@@ -8,6 +8,7 @@ You don't need to be a cloud expert to use this. Follow the steps below in order
 
 ## How it works
 
+Spin up a secure, ready-to-use Ubuntu ARM64 server on **Oracle Cloud, AWS, or Azure** with a single command — no cloud console clicking, no manual server setup.
 This repo uses two well-known, free, open-source tools:
 
 - **Terraform** — creates the server and its networking on your chosen cloud provider.
