@@ -86,10 +86,13 @@ resource "azurerm_linux_virtual_machine" "this" {
     storage_account_type = "Standard_LRS"
   }
 
+  # Marketplace offer/sku names occasionally shift between LTS releases --
+  # if this fails to apply, verify with:
+  # az vm image list --publisher Canonical --all --location <region> --query "[?contains(sku,'24_04') && contains(sku,'arm64')]"
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-arm64"
+    offer     = "0001-com-ubuntu-server-noble"
+    sku       = "24_04-lts-arm64"
     version   = "latest"
   }
 }
