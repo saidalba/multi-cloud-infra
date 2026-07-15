@@ -1,6 +1,6 @@
 # multi-cloud-infra
 
-From time to time Oracle Cloud, AWS and/or Azure udpates their free tier resources but generally aarch64(ARM) processors are avaible with higher memory allocations. So this repo here for free riders who wants spin up quick instances for testing, learning Kubernetes or building microservices and doing this in a reproducible way.
+From time to time Oracle Cloud, AWS and/or Azure updates their free tier resources, but generally aarch64 (ARM) processors are available with higher memory allocations. This repo exists for free riders who want to spin up quick instances for testing, learning Kubernetes, or building microservices, in a reproducible way.
 
 You don't need to be a cloud expert to use this. Follow the steps below in order and you'll have a working server in a few minutes.
 
@@ -42,6 +42,8 @@ Pick whichever one you already have an account with. Oracle Cloud has been teste
 | Outbound Data | 10 TB / month | 100 GB / month | 100 GB / month |
 | Duration | Always Free | Trial ends Dec 31, 2026 | 12 months only |
 | Who Qualifies? | New & existing accounts | New & existing accounts | New accounts only |
+
+> Note: this table reflects each provider's general free-tier ARM offer and may not match the exact instance size this repo provisions by default (see the table above, or `terraform.tfvars.example` for each provider). Free-tier terms change over time and by account — always confirm current eligibility on the provider's own pricing page before relying on it.
 
 </details>
 
