@@ -3,7 +3,8 @@
 # ==========================================
 # Ignore local provider plugins and initialization directories
 .terraform/
-.terraform.lock.hcl
+# .terraform.lock.hcl is intentionally NOT ignored -- it pins exact provider
+# versions/hashes for reproducible `terraform init` across machines and CI.
 
 # Ignore local state files (Crucial: contains plain-text secrets and infrastructure metadata)
 *.tfstate

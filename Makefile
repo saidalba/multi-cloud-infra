@@ -20,7 +20,7 @@ check-provider:
 
 ## Provision the instance, generate its inventory, and run the base playbook.
 up: check-provider
-	terraform -chdir=$(LIVE_DIR) init -upgrade
+	terraform -chdir=$(LIVE_DIR) init
 	terraform -chdir=$(LIVE_DIR) apply
 	./scripts/generate-inventory.sh $(PROVIDER)
 	ansible-playbook -i $(INVENTORY) ansible/playbook.yml
@@ -31,12 +31,12 @@ down: check-provider
 
 ## Show the terraform plan for a provider.
 plan: check-provider
-	terraform -chdir=$(LIVE_DIR) init -upgrade
+	terraform -chdir=$(LIVE_DIR) init
 	terraform -chdir=$(LIVE_DIR) plan
 
 ## Validate a single provider's terraform configuration.
 validate: check-provider
-	terraform -chdir=$(LIVE_DIR) init -backend=false -upgrade
+	terraform -chdir=$(LIVE_DIR) init -backend=false
 	terraform -chdir=$(LIVE_DIR) validate
 
 ## Format all terraform configuration in the repo.
@@ -47,7 +47,7 @@ fmt:
 lint:
 	@for p in $(PROVIDERS); do \
 		echo "== validating $$p =="; \
-		terraform -chdir=terraform/live/$$p init -backend=false -upgrade >/dev/null; \
+		terraform -chdir=terraform/live/$$p init -backend=false >/dev/null; \
 		terraform -chdir=terraform/live/$$p validate; \
 	done
 	terraform fmt -check -recursive terraform/
